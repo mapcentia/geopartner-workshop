@@ -1,0 +1,37 @@
+version: '3'
+
+networks:
+  web:
+    external: true
+  internal:
+    external: false
+
+services:
+  vidi:
+    build: .
+    image: geopartner/vidi:test
+    volumes:
+      - vidi_root_vidi_public_tmp:/root/vidi/public/tmp
+      - vidi_tmp_sessions:/tmp/sessions
+    deploy:
+      resources:
+        limits:
+          cpus: '2'
+          memory: 4G
+      labels:
+        - traefik.backend=mapgoviditest.geopartner.dk
+        - traefik.frontend.rule=Host:mapgoviditest.geopartner.dk # SET HOST
+        - traefik.port=3000
+        - traefik.backend.loadbalancer.swarm=true
+        - traefik.docker.network=web
+        - traefik.frontend.passHostHeader=true
+    networks:
+      - internal
+      - web
+    # Porte skal normalt ikke exposes
+    ports:
+      - "3001:3000"
+
+volumes:
+  vidi_root_vidi_public_tmp:
+  vidi_tmp_sessions:

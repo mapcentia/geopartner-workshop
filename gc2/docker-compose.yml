@@ -1,0 +1,53 @@
+version: '3'
+
+networks:
+  web:
+    external: true
+  internal:
+    external: false
+
+services:
+  gc2:
+    build: .
+    image: geopartner/gc2:prod
+    privileged: true
+    volumes:
+      - gc2core_var_www_geocloud2_app_wms:/var/www/geocloud2/app/wms
+      - gc2core_var_www_geocloud2_app_tmp:/var/www/geocloud2/app/tmp
+      - gc2core_var_www_geocloud2_public_logs:/var/www/geocloud2/public/logs
+      - gc2core_var_log:/var/log
+      - gc2core_var_lib_php_sessions:/var/lib/php/sessions
+    deploy:
+      resources:
+        limits:
+          cpus: '2'
+          memory: 4G
+      labels:
+        - traefik.backend=mapgogc2.geopartner.dk
+        - traefik.frontend.rule=Host:mapgogc2.geopartner.dk # SET HOST
+        - traefik.port=80
+        - traefik.backend.loadbalancer.swarm=true
+        - traefik.docker.network=web
+        - traefik.frontend.passHostHeader=true
+    networks:
+      - internal
+      - web
+    # Porte skal normalt ikke exposes
+    ports:
+      - "81:80"
+    environment:
+      - POSTGIS_HOST=postgis
+      - POSTGIS_DB=postgres
+      - POSTGIS_USER=gc2
+      - POSTGIS_PORT=5432
+      - POSTGIS_PW=1234
+      - POSTGIS_PGBOUNCER=false
+
+volumes:
+  gc2core_var_www_geocloud2_app_tmp:
+  gc2core_var_www_geocloud2_app_wms:
+  gc2core_var_www_geocloud2_public_logs:
+  gc2core_var_log:
+  gc2core_var_lib_php_sessions:
+
+
